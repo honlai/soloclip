@@ -14,7 +14,7 @@ list  →  face detection  →  voice matching (optional)  →  cut & splice  �
 Measured over three real lists: **355 URLs → 248 clips** (217 video, 31 audio-only),
 of which 127 (51%) are a single continuous take with no splice at all.
 
-繁體中文說明：[README.zh-tw.md](README.zh-tw.md)
+繁體中文說明：[README.zh-tw.md](README.zh-tw.md)　·　简体中文说明：[README.zh-cn.md](README.zh-cn.md)
 
 ---
 
