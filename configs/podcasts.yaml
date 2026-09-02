@@ -1,0 +1,19 @@
+# Audio-only sources such as podcasts. There is no picture to judge, so the face
+# stages are skipped and selection rests on diarization and ASR alone.
+
+extends: base.yaml
+
+paths:
+  url_list: url_list_podcasts.txt
+  work_dir: work_podcasts
+  out_dir: out_podcasts
+  audio_out_dir: out_podcasts
+  log_dir: logs_podcasts
+
+download:
+  format: "ba[acodec^=mp4a]/ba/b"   # sound only
+  merge_output_format: m4a
+  archive: work_podcasts/meta/download_archive.txt
+
+runtime:
+  audio_only: true

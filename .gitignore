@@ -1,0 +1,30 @@
+# --- data: intermediates and results ---------------------------------------
+work/
+work_*/
+out/
+out_*/
+logs/
+logs_*/
+var/
+
+# --- user-supplied input ----------------------------------------------------
+url_list*.txt
+!url_list.example.txt
+cookies.txt
+.env
+
+# --- things that mean something only on one machine -------------------------
+# Override files: cookie profile paths, storage locations, interpreter paths.
+# Tracked files must not carry somebody's username, so these values live here
+# instead. Each has an .example alongside it.
+configs/local.yaml
+tools/local.env
+local.mk
+
+# --- Python and tooling -----------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/

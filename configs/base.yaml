@@ -1,0 +1,147 @@
+# soloclip baseline settings: the thresholds and behaviour every list shares.
+# Individual lists state only their differences and inherit this with `extends`
+# (see the other files in configs/). Running this file directly processes
+# whatever paths.url_list points at.
+#
+# Nothing is hardcoded in the code - if a number matters, it lives here.
+
+paths:
+  # Everything *generated* (work*/ out*/ logs*/ and the download archive) hangs
+  # off this. ".." is the parent of the repo: code in repo/, data outside it, so
+  # packaging or uploading only ever involves this one directory. The working set
+  # reaches 30GB in practice and has no business next to 300KB of source.
+  # SOLOCLIP_DATA overrides this, so one config works on machines with different
+  # storage without being edited.
+  data_root: ".."
+  # One file or several. Duplicates across lists are dropped by video id, and
+  # videos that already produced a clip are skipped, so adding a list never
+  # re-runs the old ones.
+  url_list: url_list.txt
+  work_dir: work
+  out_dir: out
+  audio_out_dir: out_audio   # audio-only results when the picture does not qualify
+  log_dir: logs
+
+download:
+  # ≤720p h264+aac only: cheaper to fetch and no transcode needed later.
+  format: "bv*[height<=720][vcodec^=avc1]+ba[acodec^=mp4a]/b[height<=720]/b"
+  merge_output_format: mp4
+  # Longer videos are still downloaded, but only the first max_scan_seconds are
+  # searched for a clip.
+  max_scan_seconds: 900
+  match_filter: "!is_live & duration > 30"
+  write_info_json: true
+  # No stage reads subtitles - word timings all come from ASR - yet fetching them
+  # costs extra requests and can fail the whole video (HTTP 429 was hit in
+  # practice). Off.
+  write_auto_subs: false
+  sub_langs: "en,zh-Hant,zh-Hans"
+  concurrent_fragments: 4
+  retries: 5
+
+  # YouTube's signature challenge needs both a JS runtime and the EJS solver
+  # script. Missing either yields no real formats at all, which shows up as
+  # "Requested format is not available" or as an apparently SABR-only response.
+  # node comes from conda; the solver is published by yt-dlp and fetched on first
+  # use.
+  js_runtimes: "node"
+  remote_components: "ejs:github"
+
+  # Getting past "Sign in to confirm you're not a bot" needs cookies from a
+  # signed-in session. cookies_file wins over cookies_from_browser.
+  # Browser form: "firefox", or "firefox:/path/to/profile".
+  # Under WSL only Firefox works - Chrome and Edge encrypt cookies with DPAPI,
+  # which cannot be read from this side.
+  # Put machine-specific values in the gitignored configs/local.yaml, not here.
+  cookies_file: ""
+  cookies_from_browser: ""
+
+  # YouTube sometimes answers "The page needs to be reloaded"; retrying does not
+  # help but a different player client does. Empty = yt-dlp's default.
+  youtube_player_client: "web_safari,android"
+
+  archive: work/meta/download_archive.txt   # skip what was already fetched
+
+audio:
+  sample_rate: 16000
+  channels: 1
+
+diarize:
+  # Gated model: a token is not enough, the terms must be accepted on the
+  # HuggingFace website first. See the install section of the README.
+  model: pyannote/speaker-diarization-3.1
+  min_speaker_turn: 1.0      # shorter turns are treated as noise
+  overlap_pad: 0.20          # seconds trimmed either side of anyone else's speech
+  # A speaker drawing breath is not a break in the take. Without bridging, the
+  # longest continuous clean stretch was 10.9s and every clip needed splicing.
+  bridge_pause: 1.00
+  dominant_by: total_speech
+
+asr:
+  model: small               # small is right for 4GB VRAM; medium/int8 also works
+  compute_type: int8_float16
+  language: null             # null = detect
+  word_timestamps: true
+
+asd:  # active speaker detection: same person, facing camera, mouth moving
+  fps: 6                     # sampling rate inside candidate regions
+  # These two thresholds solve different problems - tools/sweep.py reproduces
+  # this. min_face_ratio decides whether a video is usable at all;
+  # max_yaw_deg decides how few splices the result needs.
+  min_face_ratio: 0.05       # face width as a fraction of frame width
+  max_yaw_deg: 35            # turning left/right
+  max_pitch_deg: 25          # up/down; measured not to be the bottleneck (80-99% pass)
+  face_id_threshold: 0.35    # max cosine distance from the target speaker's face
+  lip_motion_min: 0.015      # mouth movement energy; filters silence and B-roll
+  min_frontal_ratio: 0.8     # share of frames in a span that must genuinely pass
+
+select:
+  target_seconds: 20.0       # what selection aims for
+  max_seconds: 24.0          # hard ceiling; only exceeded to let a sentence finish
+  min_seconds: 8.0           # below this, write nothing at all
+  max_joins: 2               # 0 = accept only a single continuous take
+  min_piece_seconds: 3.0     # shortest usable piece, so results do not feel choppy
+  snap_to_sentence: true     # align cuts to ASR word/sentence boundaries
+  head_pad: 0.10             # keep cuts off the first and last syllable
+  tail_pad: 0.25
+  prefer: longest_single
+  # When the picture fails ASD (face too small, turned away, not speaking) but the
+  # audio is still the target speaker alone, write an audio-only clip of the same
+  # length instead. The speaker rules do not change - the clean spans already
+  # exclude every other voice; only the on-camera requirement is dropped.
+  audio_fallback: true
+  join_penalty_seconds: 1.5  # each extra splice is worth this many seconds of length
+  gap_penalty_per_min: 0.5   # pieces far apart in the source are penalised
+  candidate_pool: 10         # assemble from the N longest candidates only
+
+render:
+  height: 720
+  fps: 25
+  vcodec: libx264
+  crf: 20
+  preset: medium
+  acodec: aac
+  abit: 128k
+  loudnorm: true             # EBU R128
+  # Applied *after* loudnorm, which runs internally at 192kHz and passes that rate
+  # on. Resampling before it is silently discarded, which is how every clip ended
+  # up at an odd 96kHz.
+  sample_rate: 48000
+  audio_xfade_ms: 20         # short fade at joins, to kill the click
+  video_xfade_ms: 0          # hard cut: a dissolve reads as an edit, a cut does not
+
+runtime:
+  device: cuda               # cuda | cpu
+  workers: 2
+  # per_video = one video start to finish before the next. Clips land early and
+  #             intermediates are reclaimed as they go, but each video rebuilds
+  #             three CUDA contexts.
+  # per_stage = whole list through one stage at a time. Three contexts in total,
+  #             but nothing is rendered until the end and every download sits on
+  #             disk throughout.
+  mode: per_video
+  # none  = keep everything
+  # audio = drop the wav afterwards (regenerates from the source in a second)
+  # all   = also drop the source once a clip came out of it; retuning then needs
+  #         a re-download
+  cleanup: all

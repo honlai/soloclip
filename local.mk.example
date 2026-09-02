@@ -1,0 +1,3 @@
+# Copy to local.mk (gitignored); the Makefile includes it automatically.
+# Names this machine's interpreter without editing a tracked file.
+PY := /path/to/conda/envs/soloclip/bin/python

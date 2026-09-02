@@ -1,0 +1,12 @@
+# pyproject.toml is the single source of truth for dependencies. This file exists
+# for people who expect a requirements.txt:
+#
+#   pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124
+#   pip install -r requirements.txt
+#
+# torch and torchaudio must be installed first and separately: they need the
+# CUDA-specific index, and letting pip resolve them here would install a CPU build
+# over a working GPU one. Two further steps are still required afterwards - the
+# onnxruntime shadowing fix and the node/EJS runtime - see the install section of
+# the README.
+-e .

@@ -1,0 +1,12 @@
+# One URL per line. Lines starting with # are comments; blank lines are ignored.
+# Copy to url_list.txt (or whatever paths.url_list names) and fill in your own.
+# Duplicates across lists are dropped by video id, and videos that already
+# produced a clip are skipped on later runs.
+#
+# The two below are real TED talks, so this file runs as-is.
+https://youtu.be/BdHK_r9RXTc
+https://www.youtube.com/watch?v=8S0FDjFBj8o
+#
+# Ids may also start with a dash, e.g. https://youtu.be/-ABCDEFGHIJ
+# That is fine in this file, but on the command line such an id needs the equals
+# form or argparse reads it as a flag:  --video-id=-ABCDEFGHIJ

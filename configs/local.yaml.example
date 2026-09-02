@@ -1,0 +1,12 @@
+# Copy to configs/local.yaml (gitignored) for values that belong to this machine
+# only. It is layered on top of whichever config is loaded, so state differences
+# and nothing else.
+
+download:
+  # Under WSL only Firefox cookies are readable; Chrome and Edge encrypt theirs
+  # with DPAPI.
+  cookies_from_browser: "firefox:/mnt/c/Users/<you>/AppData/Roaming/Mozilla/Firefox/Profiles/<xxxx>.default-release"
+
+paths:
+  # Where generated data should live. SOLOCLIP_DATA does the same thing.
+  data_root: ".."

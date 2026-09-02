@@ -1,0 +1,16 @@
+# Lectures and single-speaker talks (TEDx and similar). Mostly close-ups of one
+# person; falls back to audio-only when the picture does not qualify.
+
+extends: base.yaml
+
+paths:
+  url_list:
+    - url_list_talks.txt
+    - url_list_talks_2.txt
+  work_dir: work_talks
+  out_dir: out_talks
+  audio_out_dir: out_talks_audio
+  log_dir: logs_talks
+
+download:
+  archive: work_talks/meta/download_archive.txt

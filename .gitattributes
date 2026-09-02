@@ -1,0 +1,12 @@
+# Shell scripts and Python must keep LF even when checked out on Windows:
+# this project runs under WSL, and a CRLF shebang makes the interpreter
+# unfindable with a confusing "bad interpreter" error.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.yaml text eol=lf
+*.md   text eol=lf
+Makefile text eol=lf
+
+# Markdown documents in this repo are mostly Chinese prose; diffing them by
+# word rather than by line keeps changes readable.
+*.md diff

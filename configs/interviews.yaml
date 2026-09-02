@@ -1,0 +1,22 @@
+# Interview series with one recurring host. Guest material wins; the host is used
+# only when the guest has neither a usable close-up nor clean audio.
+
+extends: base.yaml
+
+paths:
+  url_list: url_list_interviews.txt
+  work_dir: work_interviews
+  out_dir: out_interviews
+  audio_out_dir: out_interviews_audio
+  log_dir: logs_interviews
+
+download:
+  archive: work_interviews/meta/download_archive.txt
+
+host:
+  # 0.45 comes from the measured distribution: host voices sat at 0.03-0.33 and
+  # guests at 0.55-1.01, leaving a 0.22 gap. Taking the middle of the gap rather
+  # than hugging either cluster is what survives variation in new episodes - the
+  # original 0.55 was 0.002 away from the nearest guest.
+  distance: 0.45
+  min_videos: 3
